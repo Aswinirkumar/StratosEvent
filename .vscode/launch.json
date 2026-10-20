@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "StratosEvent Backend Server (Port 5000)",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/backend/server.js",
+      "cwd": "${workspaceFolder}/backend",
+      "envFile": "${workspaceFolder}/backend/.env",
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Run StratosEvent Test Suite (35 Tests)",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/backend/tests/api.test.js",
+      "cwd": "${workspaceFolder}/backend",
+      "envFile": "${workspaceFolder}/backend/.env",
+      "console": "integratedTerminal"
+    }
+  ]
+}

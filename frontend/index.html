@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="StratosEvent — Hawkins 1983 Edition. Enterprise Event Management and Registration Platform for workshops, webinars, hackathons, and conferences. Capacity protection and verified registration.">
+  <title>StratosEvent // The Upside Down — Event Management & Verified Registration</title>
+
+  <!-- Google Fonts: Benguiat/Cinzel Serif & Courier Prime Retro Accents -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;700;800;900&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap 5 CSS CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  
+  <!-- Bootstrap Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- Stranger Things Theme Stylesheet (Relative Path) -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Accessible Skip to Main Content Link -->
+
+  <!-- ===================================================================
+       1. Navigation Bar (Stranger Things 1983 Hawkins Header)
+       =================================================================== -->
+  <header>
+    <nav class="navbar navbar-expand-xl navbar-dark navbar-custom sticky-top" aria-label="Main navigation">
+      <div class="container">
+        <!-- Brand Wordmark & Emblem -->
+        <a class="navbar-brand d-flex align-items-center gap-2 text-decoration-none" href="index.html" aria-label="StratosEvent Home">
+          <span class="brand-emblem st-emblem" aria-hidden="true">
+            <i class="bi bi-fire"></i>
+          </span>
+          <span class="brand-wordmark st-wordmark">STRATOSEVENT</span>
+          <span class="brand-badge st-badge d-none d-sm-inline-block">HAWKINS '83</span>
+        </a>
+
+        <!-- Mobile Menu Toggle Button -->
+        <button 
+          class="navbar-toggler border-0 shadow-none p-1.5" 
+          type="button" 
+          data-bs-toggle="collapse" 
+          data-bs-target="#navbarMain" 
+          aria-controls="navbarMain" 
+          aria-expanded="false" 
+          aria-label="Toggle navigation menu"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Navigation Links & Actions -->
+        <div class="collapse navbar-collapse" id="navbarMain">
+          <ul class="navbar-nav me-auto mb-2 mb-xl-0 ms-xl-4">
+            <li class="nav-item">
+              <a class="nav-link nav-link-custom active" aria-current="page" href="#hero">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link nav-link-custom" href="#eventsSection">Explore Events</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link nav-link-custom" href="#workflowSection">How It Works</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link nav-link-custom" href="#featuresSection">Platform Features</a>
+            </li>
+          </ul>
+
+          <!-- Role Action Buttons (Interactive Auth State) -->
+          <div class="d-flex align-items-center gap-2 pt-2 pt-xl-0" id="navAuthSection">
+            <button 
+              type="button" 
+              class="btn btn-outline-secondary btn-sm px-3" 
+              onclick="openAuthModal('participant')"
+              aria-label="Open participant login guidance"
+            >
+              <i class="bi bi-box-arrow-in-right me-1.5" aria-hidden="true"></i> Login
+            </button>
+            <button 
+              type="button" 
+              class="btn btn-primary btn-sm px-3 shadow-none" 
+              onclick="openAuthModal('admin')"
+              aria-label="Open administrator access guidance"
+            >
+              <i class="bi bi-shield-lock me-1.5" aria-hidden="true"></i> Admin Portal
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main id="mainContent">
+    <!-- ===================================================================
+         2. Hero Section (Stranger Things Headline with Compact Security HUD)
+         =================================================================== -->
+    <section class="hero-section" id="hero">
+      <div class="container">
+        <div class="row align-items-center g-4 g-lg-4">
+          <!-- Hero Text & Value Proposition -->
+          <div class="col-lg-7">
+            <div class="pill-label st-pill mb-2.5">
+              <span class="st-pulse-dot"></span> HAWKINS LAB • LIVE EVENT DISPATCH
+            </div>
+            <h1 class="hero-heading st-hero-heading mb-2.5">
+              ENTER THE <span class="st-highlight">UPSIDE DOWN</span> OF TECH &amp; CAMPUS EVENTS.
+            </h1>
+            <p class="hero-description mb-3">
+              Discover and register for premier engineering summits, hackathons, and technical workshops. Powered by real-time MySQL capacity locks, zero duplicate bookings, and verified ticket passes.
+            </p>
+            <div class="d-flex flex-wrap gap-2 pt-1">
+              <a href="#eventsSection" class="btn btn-primary px-3.5 py-2">
+                <i class="bi bi-compass me-1.5" aria-hidden="true"></i> Explore Events
+              </a>
+              <a href="#workflowSection" class="btn btn-outline-secondary px-3.5 py-2">
+                <i class="bi bi-diagram-3 me-1.5" aria-hidden="true"></i> How It Works
+              </a>
+            </div>
+          </div>
+
+          <!-- Hero Compact Security HUD Card -->
+          <div class="col-lg-5">
+            <div class="hero-card st-terminal-card st-terminal-compact">
+              <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom st-card-header">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="st-terminal-dot"></span>
+                  <span class="text-uppercase small fw-bold st-terminal-title">Security &amp; Protocol HUD</span>
+                </div>
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle font-monospace small px-2 py-0.5">V1.0 • SECURE</span>
+              </div>
+
+              <!-- Compact 2x2 Grid for Core Guarantees -->
+              <div class="row g-2">
+                <!-- 1. Capacity Lock -->
+                <div class="col-6">
+                  <div class="st-hud-box">
+                    <div class="d-flex align-items-center gap-1.5 mb-1">
+                      <i class="bi bi-shield-lock-fill text-danger fs-6"></i>
+                      <span class="fw-bold text-white small">Capacity Lock</span>
+                    </div>
+                    <div class="st-hud-desc">Transactional seat locks prevent overbooking</div>
+                  </div>
+                </div>
+
+                <!-- 2. Duplicate Key Lock -->
+                <div class="col-6">
+                  <div class="st-hud-box">
+                    <div class="d-flex align-items-center gap-1.5 mb-1">
+                      <i class="bi bi-ticket-perforated-fill text-success fs-6"></i>
+                      <span class="fw-bold text-white small">Composite Key</span>
+                    </div>
+                    <div class="st-hud-desc">Zero duplicate bookings per participant</div>
+                  </div>
+                </div>
+
+                <!-- 3. Digital Pass -->
+                <div class="col-6">
+                  <div class="st-hud-box">
+                    <div class="d-flex align-items-center gap-1.5 mb-1">
+                      <i class="bi bi-qr-code-scan text-info fs-6"></i>
+                      <span class="fw-bold text-white small">Verified Pass</span>
+                    </div>
+                    <div class="st-hud-desc">Unique codes eliminate attendance fraud</div>
+                  </div>
+                </div>
+
+                <!-- 4. 4-Stage Lifecycle -->
+                <div class="col-6">
+                  <div class="st-hud-box">
+                    <div class="d-flex align-items-center gap-1.5 mb-1">
+                      <i class="bi bi-diagram-2-fill text-warning fs-6"></i>
+                      <span class="fw-bold text-white small">4-Stage Pipeline</span>
+                    </div>
+                    <div class="st-hud-desc">Registered ➔ Approved ➔ Checked-In</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- HUD Footer with direct link to detailed evaluation specs below -->
+              <div class="mt-2.5 pt-2 border-top st-card-footer d-flex justify-content-between align-items-center">
+                <span class="text-muted font-monospace" style="font-size: 0.72rem;">
+                  <i class="bi bi-database-check text-success me-1"></i> MySQL InnoDB Active
+                </span>
+                <a href="#workflowSection" class="text-danger small fw-semibold text-decoration-none">
+                  Full Specs <i class="bi bi-arrow-down-short"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         3. Event Discovery & Search Section (Main Focus)
+         =================================================================== -->
+    <section class="py-4 py-lg-5" id="eventsSection">
+      <div class="container">
+        <!-- Section Header with Aligned Status and Counter -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h2 class="h3 fw-bold text-white mb-1">Explore Available Events</h2>
+            <p class="text-muted small mb-0">Discover and reserve seats for active workshops, webinars, and hackathons.</p>
+          </div>
+          <!-- Live Result Count & MySQL Status Badge -->
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <span id="resultsCount" class="badge bg-light text-secondary border px-2.5 py-1.5 small fw-semibold" aria-live="polite">
+              Loading catalog...
+            </span>
+            <div id="statusNotice">
+              <!-- Dynamically populated by main.js -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Discovery Toolbar (Search Input & Category Filter) -->
+        <div class="discovery-toolbar">
+          <form class="row g-3 align-items-end" onsubmit="return false;" role="search">
+            <!-- Keyword Search -->
+            <div class="col-12 col-md-7 col-lg-8">
+              <label for="eventSearch" class="form-label small fw-semibold text-secondary mb-1">
+                Search by keyword or venue
+              </label>
+              <div class="input-group">
+                <span class="input-group-text border-end-0" aria-hidden="true">
+                  <i class="bi bi-search"></i>
+                </span>
+                <input 
+                  type="text" 
+                  class="form-control form-control-custom border-start-0 ps-0" 
+                  id="eventSearch" 
+                  placeholder="e.g. Kubernetes, AI, Hackathon, Bengaluru..."
+                  aria-label="Search events by title, description, or venue"
+                >
+              </div>
+            </div>
+
+            <!-- Category Filter Dropdown -->
+            <div class="col-12 col-md-5 col-lg-4">
+              <label for="categoryFilter" class="form-label small fw-semibold text-secondary mb-1">
+                Filter by event type
+              </label>
+              <select class="form-select form-select-custom" id="categoryFilter" aria-label="Filter events by category">
+                <option value="all" selected>All Categories</option>
+                <option value="workshop">Workshops</option>
+                <option value="webinar">Webinars</option>
+                <option value="hackathon">Hackathons</option>
+                <option value="conference">Conferences</option>
+                <option value="seminar">Seminars</option>
+              </select>
+            </div>
+          </form>
+        </div>
+
+        <!-- Dynamic Event Cards Grid (Injected by main.js) -->
+        <div id="eventsContainer" class="row g-4" aria-live="polite">
+          <!-- Fallback spinner while DOM script initializes -->
+          <div class="col-12 text-center py-5">
+            <div class="spinner-border spinner-border-sm text-primary" role="status">
+              <span class="visually-hidden">Loading events catalog...</span>
+            </div>
+            <p class="mt-2 text-muted small">Loading demonstration events...</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         4. Registration Lifecycle Section ("How It Works")
+         =================================================================== -->
+    <section class="lifecycle-section" id="workflowSection">
+      <div class="container">
+        <!-- Section Header -->
+        <div class="text-center max-w-700 mx-auto mb-5">
+          <span class="badge bg-primary-subtle text-primary text-uppercase px-2.5 py-1 fw-semibold small">Structured Lifecycle</span>
+          <h2 class="h3 fw-bold mt-2">Registration & Attendance Lifecycle</h2>
+          <p class="text-muted small mb-0">
+            StratosEvent implements four operational stages to guarantee capacity integrity and prevent attendance duplication.
+          </p>
+        </div>
+
+        <!-- 4-Stage Stepper Grid -->
+        <div class="row g-3 g-lg-4">
+          <!-- Stage 1 -->
+          <div class="col-sm-6 col-lg-3">
+            <div class="lifecycle-card">
+              <div class="step-num">Stage 01</div>
+              <h3 class="step-title">
+                <span>Registered</span>
+                <span class="step-chip chip-registered">Initiated</span>
+              </h3>
+              <p class="small text-muted mb-0">
+                Participant submits an application. A composite unique key <code>(user_id, event_id)</code> enforces zero duplicate submissions.
+              </p>
+            </div>
+          </div>
+
+          <!-- Stage 2 -->
+          <div class="col-sm-6 col-lg-3">
+            <div class="lifecycle-card">
+              <div class="step-num">Stage 02</div>
+              <h3 class="step-title">
+                <span>Pending Approval</span>
+                <span class="step-chip chip-pending">Verification</span>
+              </h3>
+              <p class="small text-muted mb-0">
+                Transactional lock checks remaining seat capacity against the event limit before authorizing reservation.
+              </p>
+            </div>
+          </div>
+
+          <!-- Stage 3 -->
+          <div class="col-sm-6 col-lg-3">
+            <div class="lifecycle-card">
+              <div class="step-num">Stage 03</div>
+              <h3 class="step-title">
+                <span>Approved</span>
+                <span class="step-chip chip-approved">Ticket Issued</span>
+              </h3>
+              <p class="small text-muted mb-0">
+                Participant receives a verified pass with a unique reference code (e.g., <code>TKT-STR-2026-0001</code>) for QR check-in.
+              </p>
+            </div>
+          </div>
+
+          <!-- Stage 4 -->
+          <div class="col-sm-6 col-lg-3">
+            <div class="lifecycle-card">
+              <div class="step-num">Stage 04</div>
+              <h3 class="step-title">
+                <span>Checked-in</span>
+                <span class="step-chip chip-checkedin">Admitted</span>
+              </h3>
+              <p class="small text-muted mb-0">
+                Event staff scans the pass on event day. The unique attendance key strictly prevents multiple check-ins of the same ticket.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         5. Platform Features Section
+         =================================================================== -->
+    <section class="py-5" id="featuresSection">
+      <div class="container py-3">
+        <!-- Section Header -->
+        <div class="text-center max-w-700 mx-auto mb-5">
+          <span class="badge bg-secondary-subtle text-secondary-emphasis text-uppercase px-2.5 py-1 fw-semibold small">Core Capabilities</span>
+          <h2 class="h3 fw-bold mt-2">Enterprise-Grade Architecture</h2>
+          <p class="text-muted small mb-0">
+            Engineered with concurrency protection, transactional seat locks, and secure role separation.
+          </p>
+        </div>
+
+        <!-- 6 Feature Cards Grid -->
+        <div class="row g-4">
+          <div class="col-md-6 col-lg-4">
+            <div class="feature-card">
+              <div class="feature-icon-wrapper" aria-hidden="true">
+                <i class="bi bi-people-fill"></i>
+              </div>
+              <h3 class="h6 fw-bold text-dark mb-1.5">Role-Based Access Control</h3>
+              <p class="small text-muted mb-0">
+                Strict separation between <strong>Participants</strong> (discovery and ticketing) and <strong>Administrators</strong> (event moderation and check-in auditing).
+              </p>
+            </div>
+          </div>
+
+          <div class="col-md-6 col-lg-4">
+            <div class="feature-card">
+              <div class="feature-icon-wrapper" aria-hidden="true">
+                <i class="bi bi-shield-check"></i>
+              </div>
+              <h3 class="h6 fw-bold text-dark mb-1.5">Duplicate Registration Lock</h3>
+              <p class="small text-muted mb-0">
+                Database-level composite constraint <code>(user_id, event_id)</code> guarantees a user cannot hold redundant reservations for the same session.
+              </p>
+            </div>
+          </div>
+
+          <div class="col-md-6 col-lg-4">
+            <div class="feature-card">
+              <div class="feature-icon-wrapper" aria-hidden="true">
+                <i class="bi bi-speedometer"></i>
+              </div>
+              <h3 class="h6 fw-bold text-dark mb-1.5">Capacity & Concurrency Guard</h3>
+              <p class="small text-muted mb-0">
+                Pessimistic row locking in MySQL transactions guarantees that concurrent registrations never exceed the maximum seat threshold.
+              </p>
+            </div>
+          </div>
+
+          <div class="col-md-6 col-lg-4">
+            <div class="feature-card">
+              <div class="feature-icon-wrapper" aria-hidden="true">
+                <i class="bi bi-upc-scan"></i>
+              </div>
+              <h3 class="h6 fw-bold text-dark mb-1.5">Unique Digital Pass Codes</h3>
+              <p class="small text-muted mb-0">
+                Each reservation receives a cryptographically safe, human-readable identifier ready for QR and barcode scanning at venue entry.
+              </p>
+            </div>
+          </div>
+
+          <div class="col-md-6 col-lg-4">
+            <div class="feature-card">
+              <div class="feature-icon-wrapper" aria-hidden="true">
+                <i class="bi bi-patch-check-fill"></i>
+              </div>
+              <h3 class="h6 fw-bold text-dark mb-1.5">Single Check-In Verification</h3>
+              <p class="small text-muted mb-0">
+                Attendance records are constrained to unique registration references, completely closing the door to pass reuse or attendance fraud.
+              </p>
+            </div>
+          </div>
+
+          <div class="col-md-6 col-lg-4">
+            <div class="feature-card">
+              <div class="feature-icon-wrapper" aria-hidden="true">
+                <i class="bi bi-graph-up-arrow"></i>
+              </div>
+              <h3 class="h6 fw-bold text-dark mb-1.5">Audit & Attendance Reporting</h3>
+              <p class="small text-muted mb-0">
+                Real-time visibility into capacity utilization, arrival timestamps, and attendance status logs for post-event evaluations.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         6. Project Evaluation Disclaimer Banner
+         =================================================================== -->
+    <section class="container my-4">
+      <div class="demo-notice-card d-flex align-items-center gap-3">
+        <i class="bi bi-broadcast fs-3 text-danger flex-shrink-0" aria-hidden="true"></i>
+        <div class="small text-secondary">
+          <strong class="text-white">Hawkins Dispatch Notice:</strong> You are browsing the live event portal for <strong>StratosEvent</strong>. All events and ticket reservations are synchronized in real-time with the Node.js/Express backend and MySQL database (<code>stratosevent_db</code>).
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================================================================
+       7. Event Detail Modal (Preview Specification)
+       =================================================================== -->
+  <div class="modal fade" id="eventDetailModal" tabindex="-1" aria-labelledby="modalEventTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header border-bottom py-3">
+          <h2 class="modal-title h5 fw-bold text-dark mb-0" id="modalEventTitle">Event Details</h2>
+          <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close modal"></button>
+        </div>
+        <div class="modal-body p-4" id="modalEventBody">
+          <!-- Populated dynamically by openEventModal() in main.js -->
+        </div>
+        <div class="modal-footer border-top bg-light py-2.5">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+          <span id="modalActionContainer">
+            <button 
+              type="button" 
+              class="btn btn-primary btn-sm" 
+              data-bs-dismiss="modal"
+              onclick="openAuthModal('participant')"
+            >
+              <i class="bi bi-box-arrow-in-right me-1" aria-hidden="true"></i> Login to Register
+            </button>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================
+       8. Interactive Authentication Modal (Sign In & Register)
+       =================================================================== -->
+  <div class="modal fade" id="authNoticeModal" tabindex="-1" aria-labelledby="authModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header border-bottom py-3">
+          <h3 class="modal-title h5 fw-bold text-dark mb-0" id="authModalTitle">
+            <i class="bi bi-person-circle me-1.5 text-primary"></i> Account Authentication
+          </h3>
+          <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          <!-- Quick Fill Demo Shortcut Banner -->
+          <div class="bg-light border rounded-3 p-3 mb-3">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <span class="small fw-semibold text-secondary">Quick Fill Demo Credentials:</span>
+              <span class="badge bg-success-subtle text-success border border-success-subtle">Ready</span>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="btn btn-outline-primary btn-xs py-1 px-2.5 small" onclick="fillDemoCredentials('participant')">
+                <i class="bi bi-person me-1"></i> Participant (Rohit)
+              </button>
+              <button type="button" class="btn btn-outline-secondary btn-xs py-1 px-2.5 small" onclick="fillDemoCredentials('admin')">
+                <i class="bi bi-shield-lock me-1"></i> Administrator
+              </button>
+            </div>
+          </div>
+
+          <!-- Alert Container for Feedback -->
+          <div id="authAlert" class="d-none"></div>
+
+          <!-- Nav Tabs for Login vs Register -->
+          <ul class="nav nav-tabs nav-fill mb-3" id="authTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active fw-semibold" id="login-tab" data-bs-toggle="tab" data-bs-target="#loginTabPane" type="button" role="tab">
+                Sign In
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link fw-semibold" id="register-tab" data-bs-toggle="tab" data-bs-target="#registerTabPane" type="button" role="tab">
+                Create Account
+              </button>
+            </li>
+          </ul>
+
+          <div class="tab-content" id="authTabContent">
+            <!-- 1. Sign In Form -->
+            <div class="tab-pane fade show active" id="loginTabPane" role="tabpanel">
+              <form id="loginForm" onsubmit="handleLoginSubmit(event)">
+                <div class="mb-3">
+                  <label for="loginEmail" class="form-label small fw-semibold text-secondary">Email Address</label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-white text-muted"><i class="bi bi-envelope"></i></span>
+                    <input type="email" class="form-control" id="loginEmail" placeholder="e.g. rohit.mehta@example.com" required>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label for="loginPassword" class="form-label small fw-semibold text-secondary">Password</label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-white text-muted"><i class="bi bi-key"></i></span>
+                    <input type="password" class="form-control" id="loginPassword" placeholder="Enter your password" required>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold" id="loginSubmitBtn">
+                  <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to StratosEvent
+                </button>
+              </form>
+            </div>
+
+            <!-- 2. Registration Form -->
+            <div class="tab-pane fade" id="registerTabPane" role="tabpanel">
+              <form id="registerForm" onsubmit="handleRegisterSubmit(event)">
+                <div class="mb-2.5">
+                  <label for="regFullName" class="form-label small fw-semibold text-secondary">Full Name</label>
+                  <input type="text" class="form-control form-control-sm" id="regFullName" placeholder="e.g. Ananya Sen" required>
+                </div>
+                <div class="mb-2.5">
+                  <label for="regEmail" class="form-label small fw-semibold text-secondary">Email Address</label>
+                  <input type="email" class="form-control form-control-sm" id="regEmail" placeholder="e.g. ananya.sen@example.com" required>
+                </div>
+                <div class="mb-2.5">
+                  <label for="regPassword" class="form-label small fw-semibold text-secondary">Password (min 6 characters)</label>
+                  <input type="password" class="form-control form-control-sm" id="regPassword" placeholder="Create a secure password" minlength="6" required>
+                </div>
+                <div class="mb-3">
+                  <label for="regPhone" class="form-label small fw-semibold text-secondary">Phone Number (Optional)</label>
+                  <input type="tel" class="form-control form-control-sm" id="regPhone" placeholder="e.g. +91-98000-11102">
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold" id="registerSubmitBtn">
+                  <i class="bi bi-person-plus me-1"></i> Create Free Account
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================
+       9. Verified Ticket Confirmation Modal
+       =================================================================== -->
+  <div class="modal fade" id="ticketModal" tabindex="-1" aria-labelledby="ticketModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header bg-success text-white py-3">
+          <h3 class="modal-title h5 fw-bold mb-0" id="ticketModalTitle">
+            <i class="bi bi-check-circle-fill me-2"></i> Seat Reserved Successfully!
+          </h3>
+          <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Close modal"></button>
+        </div>
+        <div class="modal-body p-4" id="ticketModalBody">
+          <!-- Populated dynamically on booking confirmation -->
+        </div>
+        <div class="modal-footer border-top bg-light py-2.5">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary btn-sm" onclick="openMyBookingsModal()">
+            <i class="bi bi-ticket-perforated me-1"></i> View All My Bookings
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================
+       10. My Registrations & Bookings Modal
+       =================================================================== -->
+  <div class="modal fade" id="myBookingsModal" tabindex="-1" aria-labelledby="myBookingsTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header border-bottom py-3">
+          <h3 class="modal-title h5 fw-bold text-dark mb-0" id="myBookingsTitle">
+            <i class="bi bi-ticket-perforated me-2 text-primary"></i> My Event Registrations
+          </h3>
+          <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close modal"></button>
+        </div>
+        <div class="modal-body p-4" id="myBookingsBody">
+          <!-- Populated dynamically by openMyBookingsModal() -->
+        </div>
+        <div class="modal-footer border-top bg-light py-2.5">
+          <button type="button" class="btn btn-primary btn-sm px-3" data-bs-dismiss="modal">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================
+       11. Administrator Operations & Moderation Console Modal
+       =================================================================== -->
+  <div class="modal fade" id="adminConsoleModal" tabindex="-1" aria-labelledby="adminConsoleTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header bg-dark text-white py-3 border-bottom border-danger">
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-danger text-uppercase px-2 py-1 font-monospace">Hawkins Protocol</span>
+            <h3 class="modal-title h5 fw-bold mb-0 text-white" id="adminConsoleTitle">
+              <i class="bi bi-shield-lock-fill text-danger me-1.5"></i> Admin Control Console
+            </h3>
+          </div>
+          <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Close modal"></button>
+        </div>
+        <div class="modal-body p-4 bg-light">
+          <!-- Navigation Tabs -->
+          <ul class="nav nav-pills mb-4 gap-2" id="adminConsoleTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active px-3 py-2 fw-semibold" id="admin-tab-regs" data-bs-toggle="pill" data-bs-target="#admin-pane-regs" type="button" role="tab" aria-controls="admin-pane-regs" aria-selected="true">
+                <i class="bi bi-person-check-fill me-1.5"></i> Registration Approvals
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link px-3 py-2 fw-semibold" id="admin-tab-checkin" data-bs-toggle="pill" data-bs-target="#admin-pane-checkin" type="button" role="tab" aria-controls="admin-pane-checkin" aria-selected="false">
+                <i class="bi bi-qr-code-scan me-1.5"></i> Gate Check-In &amp; Scanner
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link px-3 py-2 fw-semibold" id="admin-tab-events" data-bs-toggle="pill" data-bs-target="#admin-pane-events" type="button" role="tab" aria-controls="admin-pane-events" aria-selected="false">
+                <i class="bi bi-calendar-plus-fill me-1.5"></i> Create &amp; Manage Events
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link px-3 py-2 fw-semibold" id="admin-tab-analytics" data-bs-toggle="pill" data-bs-target="#admin-pane-analytics" type="button" role="tab" aria-controls="admin-pane-analytics" aria-selected="false" onclick="loadAdminAnalytics()">
+                <i class="bi bi-graph-up-arrow me-1.5"></i> Analytics &amp; Reports
+              </button>
+            </li>
+          </ul>
+
+          <div class="tab-content" id="adminConsoleContent">
+            <!-- TAB 1: Registration Approvals -->
+            <div class="tab-pane fade show active" id="admin-pane-regs" role="tabpanel" aria-labelledby="admin-tab-regs">
+              <div class="card border-0 shadow-sm p-3 mb-3 bg-white">
+                <div class="row g-3 align-items-center">
+                  <div class="col-md-6">
+                    <label for="adminEventSelector" class="form-label small fw-semibold text-secondary mb-1">Select Event to Review Registrations</label>
+                    <select id="adminEventSelector" class="form-select form-select-sm" onchange="handleAdminEventChange()">
+                      <option value="">-- Choose an Event --</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6 text-md-end pt-md-4">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="handleAdminEventChange()">
+                      <i class="bi bi-arrow-clockwise me-1"></i> Refresh Roster
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div id="adminRegsAlert" class="d-none"></div>
+              <div class="card border-0 shadow-sm bg-white overflow-hidden" id="adminRegsTableContainer">
+                <div class="text-center py-4 text-muted small">Please select an event above to inspect participant bookings.</div>
+              </div>
+            </div>
+
+            <!-- TAB 2: Check-In Gate & Scanner -->
+            <div class="tab-pane fade" id="admin-pane-checkin" role="tabpanel" aria-labelledby="admin-tab-checkin">
+              <div class="row g-4">
+                <div class="col-lg-5">
+                  <div class="card border-0 shadow-sm p-4 bg-white h-100">
+                    <h5 class="fw-bold text-dark mb-2"><i class="bi bi-upc-scan text-danger me-2"></i>Verify Admission Pass</h5>
+                    <p class="text-muted small mb-3">Scan or type the attendee's ticket code to verify identity and check them in securely.</p>
+                    
+                    <form id="adminCheckinForm" onsubmit="handleAdminVerifyTicket(event)">
+                      <div class="mb-3">
+                        <label for="checkinTicketCode" class="form-label small fw-semibold text-secondary">Unique Ticket Code</label>
+                        <input type="text" id="checkinTicketCode" class="form-control font-monospace" placeholder="e.g. TKT-STR-2026-0001" required>
+                      </div>
+                      <div class="mb-3">
+                        <label for="checkinNotes" class="form-label small fw-semibold text-secondary">Gate Notes (Optional)</label>
+                        <input type="text" id="checkinNotes" class="form-control form-control-sm" placeholder="e.g. Gate 1, Badge issued">
+                      </div>
+                      <button type="submit" class="btn btn-danger btn-sm w-100 py-2 fw-bold" id="verifyTicketBtn">
+                        <i class="bi bi-search me-1"></i> Inspect Ticket Pass
+                      </button>
+                    </form>
+                  </div>
+                </div>
+                <div class="col-lg-7">
+                  <div class="card border-0 shadow-sm p-4 bg-white h-100" id="ticketInspectResult">
+                    <div class="text-center py-5 text-muted">
+                      <i class="bi bi-ticket-detailed display-6 d-block mb-2 text-secondary opacity-50"></i>
+                      <h6 class="fw-bold text-dark">No Ticket Scanned Yet</h6>
+                      <p class="small text-muted mb-0">Enter a ticket code on the left to verify admission authenticity.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 3: Event Management -->
+            <div class="tab-pane fade" id="admin-pane-events" role="tabpanel" aria-labelledby="admin-tab-events">
+              <div class="card border-0 shadow-sm p-4 bg-white">
+                <h5 class="fw-bold text-dark mb-2"><i class="bi bi-calendar-plus text-primary me-2"></i>Publish New Event</h5>
+                <p class="text-muted small mb-4">Creates a new event directly in the MySQL database (<code>stratosevent_db</code>) with transactional capacity enforcement.</p>
+                <div id="adminCreateEventAlert" class="d-none"></div>
+                <form id="adminCreateEventForm" onsubmit="handleCreateEventSubmit(event)">
+                  <div class="row g-3">
+                    <div class="col-md-8">
+                      <label for="eventNewTitle" class="form-label small fw-semibold text-secondary">Event Title *</label>
+                      <input type="text" id="eventNewTitle" class="form-control form-control-sm" placeholder="e.g. Distributed Systems &amp; Consensus Protocols" required>
+                    </div>
+                    <div class="col-md-4">
+                      <label for="eventNewType" class="form-label small fw-semibold text-secondary">Category *</label>
+                      <select id="eventNewType" class="form-select form-select-sm" required>
+                        <option value="workshop">Workshop</option>
+                        <option value="webinar">Webinar</option>
+                        <option value="hackathon">Hackathon</option>
+                        <option value="seminar">Seminar</option>
+                        <option value="conference">Conference</option>
+                      </select>
+                    </div>
+                    <div class="col-md-6">
+                      <label for="eventNewStart" class="form-label small fw-semibold text-secondary">Start Date &amp; Time *</label>
+                      <input type="datetime-local" id="eventNewStart" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="col-md-6">
+                      <label for="eventNewEnd" class="form-label small fw-semibold text-secondary">End Date &amp; Time *</label>
+                      <input type="datetime-local" id="eventNewEnd" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="col-md-8">
+                      <label for="eventNewVenue" class="form-label small fw-semibold text-secondary">Venue / Meeting URL *</label>
+                      <input type="text" id="eventNewVenue" class="form-control form-control-sm" placeholder="e.g. Auditorium 2, Synergy Tech Park, Hyderabad" required>
+                    </div>
+                    <div class="col-md-4">
+                      <label for="eventNewCapacity" class="form-label small fw-semibold text-secondary">Seat Capacity *</label>
+                      <input type="number" id="eventNewCapacity" class="form-control form-control-sm" min="1" max="10000" placeholder="e.g. 100" required>
+                    </div>
+                    <div class="col-12">
+                      <label for="eventNewDesc" class="form-label small fw-semibold text-secondary">Event Description</label>
+                      <textarea id="eventNewDesc" class="form-control form-control-sm" rows="3" placeholder="Provide event agenda, prerequisites, and learning outcomes..."></textarea>
+                    </div>
+                    <div class="col-12 text-end pt-2">
+                      <button type="submit" class="btn btn-primary btn-sm px-4 fw-bold" id="adminCreateEventBtn">
+                        <i class="bi bi-cloud-arrow-up me-1.5"></i> Publish Event to StratosEvent
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <!-- TAB 4: Real-Time Analytics & Business Intelligence -->
+            <div class="tab-pane fade" id="admin-pane-analytics" role="tabpanel" aria-labelledby="admin-tab-analytics">
+              <div class="d-flex align-items-center justify-content-between mb-3 bg-white p-3 rounded-3 shadow-sm border">
+                <div>
+                  <h5 class="fw-bold text-dark mb-0"><i class="bi bi-pie-chart-fill text-danger me-2"></i>Executive Intelligence &amp; Reporting</h5>
+                  <p class="text-muted small mb-0">Live aggregated metrics calculated strictly from genuine MySQL transactional records.</p>
+                </div>
+                <div class="d-flex gap-2">
+                  <button type="button" class="btn btn-outline-secondary btn-sm" onclick="loadAdminAnalytics()">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+                  </button>
+                  <button type="button" class="btn btn-outline-success btn-sm fw-semibold" onclick="downloadAnalyticsCSV()">
+                    <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export Roster (CSV)
+                  </button>
+                </div>
+              </div>
+
+              <div id="analyticsContentContainer">
+                <div class="text-center py-5">
+                  <div class="spinner-border spinner-border-sm text-danger" role="status"></div>
+                  <p class="small text-muted mt-2">Computing real-time analytics from stratosevent_db...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-top bg-light py-2.5">
+          <button type="button" class="btn btn-secondary btn-sm px-3" data-bs-dismiss="modal">Close Console</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================
+       9. Enterprise Footer
+       =================================================================== -->
+  <footer class="footer-enterprise">
+    <div class="container">
+      <div class="row g-4 mb-2">
+        <!-- Brand & Context -->
+        <div class="col-lg-5">
+          <div class="d-flex align-items-center gap-2 mb-2.5">
+            <span class="brand-emblem st-emblem" aria-hidden="true">
+              <i class="bi bi-fire"></i>
+            </span>
+            <span class="st-wordmark fs-5">STRATOSEVENT</span>
+          </div>
+          <p class="small text-secondary mb-3">
+            An enterprise-grade Event Management and Registration Platform designed for seamless conference scheduling, capacity protection, and verified attendance auditing.
+          </p>
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Hawkins 1983 Edition</span>
+            <span class="badge bg-dark border text-muted">Node.js • MySQL • Bootstrap 5</span>
+          </div>
+        </div>
+
+        <!-- Navigation Links -->
+        <div class="col-sm-6 col-lg-3 offset-lg-1">
+          <h4 class="h6">Quick Navigation</h4>
+          <ul class="list-unstyled small mb-0">
+            <li class="mb-2"><a href="#hero">Home</a></li>
+            <li class="mb-2"><a href="#eventsSection">Explore Events</a></li>
+            <li class="mb-2"><a href="#workflowSection">Registration Workflow</a></li>
+            <li class="mb-2"><a href="#featuresSection">Platform Features</a></li>
+          </ul>
+        </div>
+
+        <!-- Project Specifications & Documentation -->
+        <div class="col-sm-6 col-lg-3">
+          <h4 class="h6">Project Specs</h4>
+          <ul class="list-unstyled small mb-0">
+            <li class="mb-2"><a href="../docs/README.md">Project README &amp; Setup</a></li>
+            <li class="mb-2"><a href="../docs/erd.md">Entity Relationship Diagram</a></li>
+            <li class="mb-2"><a href="../docs/requirement-analysis.md">Requirements &amp; Feature Matrix</a></li>
+            <li class="mb-2"><a href="../database/schema.sql">MySQL Schema Definition</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <hr class="footer-divider">
+
+      <!-- Bottom Bar -->
+      <div class="d-flex flex-wrap justify-content-between align-items-center small text-secondary">
+        <div>
+          &copy; 2026 StratosEvent. All rights reserved.
+        </div>
+        <div class="mt-2 mt-sm-0">
+          <span class="text-muted">Built with HTML5, CSS3, JavaScript & Bootstrap 5</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 Bundle JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Custom JavaScript (Relative Path) -->
+  <script src="js/main.js"></script>
+</body>
+</html>
