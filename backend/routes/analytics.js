@@ -247,6 +247,42 @@ router.get('/events', async (req, res, next) => {
 });
 
 /**
+ * Safely escapes a value for inclusion in an RFC 4180-compliant CSV row,
+ * with comprehensive mitigation against CSV / Spreadsheet Formula Injection (CWE-1236).
+ *
+ * Security Rules:
+ * 1. Null / Undefined: returns empty quotes `""`.
+ * 2. Numbers: Preserves legitimate negative, zero, and positive numbers (e.g. -5, 0, 10.5) without modification.
+ * 3. Formula Injection Guard: If a string value begins with dangerous characters (=, @, \t, \r),
+ *    OR if it begins with (+, -) followed by non-numeric text/formulas, it is prefixed with a single quote (')
+ *    to force spreadsheet applications (Excel, Calc) to treat the cell strictly as literal text.
+ * 4. Quotes Escaping: Internal double quotes are escaped as `""`, and the entire value is enclosed in `"..."`.
+ *
+ * @param {*} val - Cell value
+ * @returns {string} Escaped CSV cell string
+ */
+function escapeCSV(val) {
+  if (val === null || val === undefined) return '""';
+  if (typeof val === 'number') return `"${val}"`;
+  let str = String(val);
+  const trimmed = str.trimStart();
+  if (trimmed.length > 0) {
+    const first = trimmed[0];
+    // Neutralize dangerous formula trigger characters (=, @, tab, carriage return)
+    if (first === '=' || first === '@' || first === '\t' || first === '\r') {
+      str = "'" + str;
+    } else if (first === '+' || first === '-') {
+      // Preserve legitimate numeric values (integers, negative numbers, decimals)
+      const isNum = /^[+-]?\d+(\.\d+)?$/.test(trimmed);
+      if (!isNum) {
+        str = "'" + str;
+      }
+    }
+  }
+  return `"${str.replace(/"/g, '""')}"`;
+}
+
+/**
  * GET /api/analytics/export/csv
  * Generates and downloads a CSV report of registrations and attendance.
  */
@@ -256,6 +292,7 @@ router.get('/export/csv', async (req, res, next) => {
       SELECT 
         r.id AS registration_id,
         r.ticket_code,
+        r.ticket_tier,
         r.status AS registration_status,
         r.registration_date,
         u.id AS user_id,
@@ -279,16 +316,10 @@ router.get('/export/csv', async (req, res, next) => {
 
     const [rows] = await pool.query(query);
 
-    // Escape CSV cell value
-    function escapeCSV(val) {
-      if (val === null || val === undefined) return '""';
-      const str = String(val).replace(/"/g, '""');
-      return `"${str}"`;
-    }
-
     const headers = [
       'Registration ID',
       'Ticket Code',
+      'Ticket Tier',
       'Registration Status',
       'Registration Date',
       'User ID',
@@ -311,6 +342,7 @@ router.get('/export/csv', async (req, res, next) => {
       const line = [
         escapeCSV(row.registration_id),
         escapeCSV(row.ticket_code),
+        escapeCSV(row.ticket_tier || 'general'),
         escapeCSV(row.registration_status),
         escapeCSV(row.registration_date ? new Date(row.registration_date).toISOString() : ''),
         escapeCSV(row.user_id),
@@ -340,4 +372,5 @@ router.get('/export/csv', async (req, res, next) => {
   }
 });
 
+router.escapeCSV = escapeCSV;
 module.exports = router;

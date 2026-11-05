@@ -51,6 +51,7 @@ router.post('/check-in', authenticateToken, requireRole('admin'), async (req, re
         r.user_id,
         r.event_id,
         r.ticket_code,
+        r.ticket_tier,
         r.status AS registration_status,
         u.full_name AS participant_name,
         u.email AS participant_email,
@@ -166,6 +167,7 @@ router.get('/verify/:ticketCode', authenticateToken, requireRole('admin'), async
       SELECT 
         r.id AS registration_id,
         r.ticket_code,
+        r.ticket_tier,
         r.status AS registration_status,
         r.registration_date,
         u.full_name AS participant_name,
@@ -201,6 +203,7 @@ router.get('/verify/:ticketCode', authenticateToken, requireRole('admin'), async
       ticket: {
         registration_id: item.registration_id,
         ticket_code: item.ticket_code,
+        ticket_tier: item.ticket_tier,
         registration_status: item.registration_status,
         participant_name: item.participant_name,
         participant_email: item.participant_email,
@@ -247,6 +250,7 @@ router.get('/event/:eventId', authenticateToken, requireRole('admin'), async (re
       SELECT 
         r.id AS registration_id,
         r.ticket_code,
+        r.ticket_tier,
         r.status AS registration_status,
         u.full_name AS participant_name,
         u.email AS participant_email,

@@ -73,13 +73,21 @@ router.get('/', optionalAuth, async (req, res, next) => {
         e.end_time,
         e.venue,
         e.capacity,
+        e.capacity_general,
+        e.capacity_vip,
+        e.capacity_student,
+        e.capacity_early_bird,
         e.status,
         e.created_by,
         e.created_at,
         e.updated_at,
         u.full_name AS creator_name,
         COALESCE(COUNT(CASE WHEN r.status IN ('approved', 'pending') THEN 1 END), 0) AS registered_count,
-        GREATEST(0, e.capacity - COALESCE(COUNT(CASE WHEN r.status IN ('approved', 'pending') THEN 1 END), 0)) AS available_seats
+        GREATEST(0, e.capacity - COALESCE(COUNT(CASE WHEN r.status IN ('approved', 'pending') THEN 1 END), 0)) AS available_seats,
+        COALESCE(COUNT(CASE WHEN r.ticket_tier = 'general' AND r.status IN ('approved', 'pending') THEN 1 END), 0) AS reg_general,
+        COALESCE(COUNT(CASE WHEN r.ticket_tier = 'vip' AND r.status IN ('approved', 'pending') THEN 1 END), 0) AS reg_vip,
+        COALESCE(COUNT(CASE WHEN r.ticket_tier = 'student' AND r.status IN ('approved', 'pending') THEN 1 END), 0) AS reg_student,
+        COALESCE(COUNT(CASE WHEN r.ticket_tier = 'early_bird' AND r.status IN ('approved', 'pending') THEN 1 END), 0) AS reg_early_bird
       FROM events e
       LEFT JOIN users u ON e.created_by = u.id
       LEFT JOIN registrations r ON e.id = r.event_id
@@ -95,6 +103,24 @@ router.get('/', optionalAuth, async (req, res, next) => {
       capacity: Number(event.capacity),
       registered_count: Number(event.registered_count),
       available_seats: Number(event.available_seats),
+      tier_capacities: {
+        general: event.capacity_general !== null ? Number(event.capacity_general) : null,
+        vip: event.capacity_vip !== null ? Number(event.capacity_vip) : null,
+        student: event.capacity_student !== null ? Number(event.capacity_student) : null,
+        early_bird: event.capacity_early_bird !== null ? Number(event.capacity_early_bird) : null,
+      },
+      tier_registered: {
+        general: Number(event.reg_general || 0),
+        vip: Number(event.reg_vip || 0),
+        student: Number(event.reg_student || 0),
+        early_bird: Number(event.reg_early_bird || 0),
+      },
+      tier_available: {
+        general: event.capacity_general !== null ? Math.max(0, Number(event.capacity_general) - Number(event.reg_general || 0)) : null,
+        vip: event.capacity_vip !== null ? Math.max(0, Number(event.capacity_vip) - Number(event.reg_vip || 0)) : null,
+        student: event.capacity_student !== null ? Math.max(0, Number(event.capacity_student) - Number(event.reg_student || 0)) : null,
+        early_bird: event.capacity_early_bird !== null ? Math.max(0, Number(event.capacity_early_bird) - Number(event.reg_early_bird || 0)) : null,
+      },
     }));
 
     return res.status(200).json({
@@ -131,13 +157,21 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
         e.end_time,
         e.venue,
         e.capacity,
+        e.capacity_general,
+        e.capacity_vip,
+        e.capacity_student,
+        e.capacity_early_bird,
         e.status,
         e.created_by,
         e.created_at,
         e.updated_at,
         u.full_name AS creator_name,
         COALESCE(COUNT(CASE WHEN r.status IN ('approved', 'pending') THEN 1 END), 0) AS registered_count,
-        GREATEST(0, e.capacity - COALESCE(COUNT(CASE WHEN r.status IN ('approved', 'pending') THEN 1 END), 0)) AS available_seats
+        GREATEST(0, e.capacity - COALESCE(COUNT(CASE WHEN r.status IN ('approved', 'pending') THEN 1 END), 0)) AS available_seats,
+        COALESCE(COUNT(CASE WHEN r.ticket_tier = 'general' AND r.status IN ('approved', 'pending') THEN 1 END), 0) AS reg_general,
+        COALESCE(COUNT(CASE WHEN r.ticket_tier = 'vip' AND r.status IN ('approved', 'pending') THEN 1 END), 0) AS reg_vip,
+        COALESCE(COUNT(CASE WHEN r.ticket_tier = 'student' AND r.status IN ('approved', 'pending') THEN 1 END), 0) AS reg_student,
+        COALESCE(COUNT(CASE WHEN r.ticket_tier = 'early_bird' AND r.status IN ('approved', 'pending') THEN 1 END), 0) AS reg_early_bird
       FROM events e
       LEFT JOIN users u ON e.created_by = u.id
       LEFT JOIN registrations r ON e.id = r.event_id
@@ -161,6 +195,24 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
       capacity: Number(event.capacity),
       registered_count: Number(event.registered_count),
       available_seats: Number(event.available_seats),
+      tier_capacities: {
+        general: event.capacity_general !== null ? Number(event.capacity_general) : null,
+        vip: event.capacity_vip !== null ? Number(event.capacity_vip) : null,
+        student: event.capacity_student !== null ? Number(event.capacity_student) : null,
+        early_bird: event.capacity_early_bird !== null ? Number(event.capacity_early_bird) : null,
+      },
+      tier_registered: {
+        general: Number(event.reg_general || 0),
+        vip: Number(event.reg_vip || 0),
+        student: Number(event.reg_student || 0),
+        early_bird: Number(event.reg_early_bird || 0),
+      },
+      tier_available: {
+        general: event.capacity_general !== null ? Math.max(0, Number(event.capacity_general) - Number(event.reg_general || 0)) : null,
+        vip: event.capacity_vip !== null ? Math.max(0, Number(event.capacity_vip) - Number(event.reg_vip || 0)) : null,
+        student: event.capacity_student !== null ? Math.max(0, Number(event.capacity_student) - Number(event.reg_student || 0)) : null,
+        early_bird: event.capacity_early_bird !== null ? Math.max(0, Number(event.capacity_early_bird) - Number(event.reg_early_bird || 0)) : null,
+      },
     };
 
     return res.status(200).json({
@@ -191,13 +243,17 @@ router.post(
         end_time,
         venue,
         capacity,
+        capacity_general = null,
+        capacity_vip = null,
+        capacity_student = null,
+        capacity_early_bird = null,
         status = 'published',
       } = req.body;
 
       const [result] = await pool.query(
         `INSERT INTO events 
-         (title, description, event_type, start_time, end_time, venue, capacity, status, created_by)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         (title, description, event_type, start_time, end_time, venue, capacity, capacity_general, capacity_vip, capacity_student, capacity_early_bird, status, created_by)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           title.trim(),
           description ? description.trim() : null,
@@ -206,6 +262,10 @@ router.post(
           new Date(end_time),
           venue.trim(),
           parseInt(capacity, 10),
+          capacity_general !== null ? parseInt(capacity_general, 10) : null,
+          capacity_vip !== null ? parseInt(capacity_vip, 10) : null,
+          capacity_student !== null ? parseInt(capacity_student, 10) : null,
+          capacity_early_bird !== null ? parseInt(capacity_early_bird, 10) : null,
           status,
           req.user.id,
         ]
@@ -263,11 +323,15 @@ router.put(
       const updatedEnd = req.body.end_time ? new Date(req.body.end_time) : current.end_time;
       const updatedVenue = req.body.venue !== undefined ? req.body.venue.trim() : current.venue;
       const updatedCapacity = req.body.capacity !== undefined ? parseInt(req.body.capacity, 10) : current.capacity;
+      const updatedCapGeneral = req.body.capacity_general !== undefined ? (req.body.capacity_general !== null ? parseInt(req.body.capacity_general, 10) : null) : current.capacity_general;
+      const updatedCapVip = req.body.capacity_vip !== undefined ? (req.body.capacity_vip !== null ? parseInt(req.body.capacity_vip, 10) : null) : current.capacity_vip;
+      const updatedCapStudent = req.body.capacity_student !== undefined ? (req.body.capacity_student !== null ? parseInt(req.body.capacity_student, 10) : null) : current.capacity_student;
+      const updatedCapEarlyBird = req.body.capacity_early_bird !== undefined ? (req.body.capacity_early_bird !== null ? parseInt(req.body.capacity_early_bird, 10) : null) : current.capacity_early_bird;
       const updatedStatus = req.body.status || current.status;
 
       await pool.query(
         `UPDATE events 
-         SET title = ?, description = ?, event_type = ?, start_time = ?, end_time = ?, venue = ?, capacity = ?, status = ?
+         SET title = ?, description = ?, event_type = ?, start_time = ?, end_time = ?, venue = ?, capacity = ?, capacity_general = ?, capacity_vip = ?, capacity_student = ?, capacity_early_bird = ?, status = ?
          WHERE id = ?`,
         [
           updatedTitle,
@@ -277,6 +341,10 @@ router.put(
           updatedEnd,
           updatedVenue,
           updatedCapacity,
+          updatedCapGeneral,
+          updatedCapVip,
+          updatedCapStudent,
+          updatedCapEarlyBird,
           updatedStatus,
           eventId,
         ]

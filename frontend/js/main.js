@@ -255,6 +255,149 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Attempt to load events (connects to live backend if available)
   loadEvents();
+
+  // Handle URL deep-link modal parameters for direct verification & preview
+  const urlParams = new URLSearchParams(window.location.search);
+  const modalParam = urlParams.get('modal');
+  if (modalParam === 'event') {
+    setTimeout(() => openEventModal(1), 400);
+  } else if (modalParam === 'event_quotas') {
+    setTimeout(() => {
+      const mockQuotaEvent = {
+        id: 999,
+        title: 'Tier Allocation Masterclass (Custom Quotas Demo)',
+        description: 'Demonstrating dynamic tier availability: 14 General left, VIP Sold Out, 8 Student left, Early Bird Not Offered.',
+        category: 'workshop',
+        dateFormatted: 'Nov 20, 2026 • 10:00 AM - 05:00 PM',
+        venue: 'Auditorium 1, Synergy Tech Park, Hyderabad',
+        capacity: 50,
+        sampleRegistered: 28,
+        availableSeats: 22,
+        tier_capacities: { general: 25, vip: 5, student: 20, early_bird: 0 },
+        tier_available: { general: 14, vip: 0, student: 8, early_bird: 0 },
+        tier_registered: { general: 11, vip: 5, student: 12, early_bird: 0 },
+        status: 'published',
+        creatorName: 'System Administrator',
+        icon: 'bi-code-slash',
+        bannerClass: 'bg-primary-subtle',
+        badgeClass: 'bg-primary text-white',
+        isLive: true,
+      };
+      currentEvents.unshift(mockQuotaEvent);
+      openEventModal(999);
+    }, 400);
+  } else if (modalParam === 'ticket') {
+    setTimeout(() => {
+      const ticketBody = document.getElementById('ticketModalBody');
+      if (ticketBody) {
+        ticketBody.innerHTML = `
+          <div class="card border-0 bg-light p-3 mb-3 text-center">
+            <span class="text-muted small text-uppercase fw-semibold mb-1">Official Booking Pass</span>
+            <h4 class="h5 fw-bold text-dark mb-1">Cloud Native Architecture &amp; Kubernetes Workshop</h4>
+            <div class="my-2 d-flex justify-content-center align-items-center gap-2">
+              <span class="badge bg-success-subtle text-success border border-success px-2.5 py-1">
+                <i class="bi bi-check-circle-fill me-1"></i> Confirmed • approved
+              </span>
+            </div>
+
+            <!-- Prominent Ticket Tier Row -->
+            <div class="bg-white border rounded-3 p-2.5 my-2.5 d-flex justify-content-between align-items-center px-3">
+              <span class="small fw-bold text-secondary text-uppercase" style="letter-spacing: 0.04em;">Ticket Tier:</span>
+              <span class="fs-6">${getTierBadge('vip')}</span>
+            </div>
+
+            <div class="bg-white border rounded-3 p-3 my-2 text-center">
+              <span class="text-muted small d-block mb-1">Your Unique Ticket Code</span>
+              <code class="fs-5 fw-bold text-primary">SE-1-62-MVGVMZIZ-2D7F75</code>
+            </div>
+            <div class="small text-muted mt-1">
+              Attendee: <strong>Rohit Mehta</strong> (rohit.mehta@example.com)
+            </div>
+          </div>
+          <p class="small text-muted text-center mb-0">
+            <i class="bi bi-shield-check text-success me-1"></i> Seat reserved via MySQL transactional lock. Show this pass at event check-in.
+          </p>
+        `;
+      }
+      if (ticketModalInstance) ticketModalInstance.show();
+    }, 400);
+  } else if (modalParam === 'bookings') {
+    setTimeout(() => {
+      const bodyEl = document.getElementById('myBookingsBody');
+      if (bodyEl) {
+        const mockRegs = [
+          { id: 1, event_title: 'Cloud Native Architecture & Kubernetes Workshop', venue: 'Convention Hall A, Tech Hub, Bengaluru', start_time: '2026-11-15T09:30:00', end_time: '2026-11-15T17:30:00', ticket_code: 'SE-1-62-MVGVMZIZ-2D7F75', ticket_tier: 'vip', status: 'approved' },
+          { id: 2, event_title: 'NextGen AI & LLM Systems Webinar', venue: 'Online Webinar (Zoom)', start_time: '2026-11-20T14:00:00', end_time: '2026-11-20T16:30:00', ticket_code: 'SE-2-62-KLOP1234-9A8B7C', ticket_tier: 'student', status: 'approved' },
+          { id: 3, event_title: 'Full-Stack Web Engineering Bootcamp', venue: 'Auditorium 2, Synergy Tech Park, Hyderabad', start_time: '2026-12-01T10:00:00', end_time: '2026-12-01T18:00:00', ticket_code: 'SE-3-62-ABCD5678-3F4E5D', ticket_tier: 'early_bird', status: 'pending' },
+          { id: 4, event_title: 'Cybersecurity & Defensive Protocols Summit', venue: 'Virtual Stage 1', start_time: '2026-12-05T11:00:00', end_time: '2026-12-05T16:00:00', ticket_code: 'SE-4-62-WXYZ9012-7E8F9A', ticket_tier: 'general', status: 'approved' },
+        ];
+        bodyEl.innerHTML = `
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light small">
+                <tr>
+                  <th>Event</th>
+                  <th>Schedule</th>
+                  <th>Ticket Code</th>
+                  <th class="text-center">Ticket Tier</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody class="small">
+                ${mockRegs.map((r) => `
+                  <tr>
+                    <td>
+                      <strong>${escapeHTML(r.event_title)}</strong>
+                      <div class="text-muted small">${escapeHTML(r.venue)}</div>
+                    </td>
+                    <td>${escapeHTML(formatEventDate(r.start_time, r.end_time))}</td>
+                    <td><code class="fw-bold text-primary">${escapeHTML(r.ticket_code)}</code></td>
+                    <td class="text-center">${getTierBadge(r.ticket_tier)}</td>
+                    <td>
+                      <span class="badge ${r.status === 'approved' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-secondary-subtle text-secondary'} text-uppercase">
+                        ${escapeHTML(r.status)}
+                      </span>
+                    </td>
+                    <td>
+                      ${r.status === 'approved' ? `
+                        <button type="button" class="btn btn-outline-danger btn-xs py-0.5 px-2 small" onclick="cancelRegistration(${r.id})">Cancel</button>
+                      ` : '<span class="text-muted small">—</span>'}
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+      if (myBookingsModalInstance) myBookingsModalInstance.show();
+    }, 400);
+  } else if (modalParam === 'admin_event') {
+    setTimeout(() => {
+      if (adminModalInstance) {
+        adminModalInstance.show();
+        const tabBtn = document.getElementById('admin-tab-events');
+        if (tabBtn && typeof bootstrap !== 'undefined') {
+          const tab = new bootstrap.Tab(tabBtn);
+          tab.show();
+        }
+      }
+    }, 400);
+  } else if (modalParam === 'auth') {
+    setTimeout(() => {
+      openAuthModal();
+    }, 400);
+  } else if (modalParam === 'auth_register') {
+    setTimeout(() => {
+      openAuthModal();
+      const regTab = document.getElementById('register-tab');
+      if (regTab && typeof bootstrap !== 'undefined') {
+        const tab = new bootstrap.Tab(regTab);
+        tab.show();
+      }
+    }, 400);
+  }
 });
 
 // -------------------------------------------------------------------------
@@ -293,6 +436,9 @@ async function loadEvents() {
             capacity,
             sampleRegistered: registered,
             availableSeats: available,
+            tier_capacities: e.tier_capacities || null,
+            tier_available: e.tier_available || null,
+            tier_registered: e.tier_registered || null,
             status: e.status || 'published',
             creatorName: e.creator_name || 'System Administrator',
             icon: meta.icon,
@@ -505,7 +651,7 @@ function openEventModal(eventId) {
     bodyEl.innerHTML = `
       <div class="d-flex align-items-center justify-content-between mb-3">
         <div>${getBadgeMarkup(event.category)}</div>
-        <span class="badge bg-light text-secondary border small">Reference: #EVT-00${event.id}</span>
+        <span class="badge bg-secondary-subtle text-secondary border small"><i class="bi bi-calendar-event me-1"></i>Official Event</span>
       </div>
 
       <p class="text-secondary mb-3">${escapeHTML(event.description)}</p>
@@ -528,6 +674,91 @@ function openEventModal(eventId) {
             <span class="text-muted d-block">Integrity Rule</span>
             <strong class="text-dark"><i class="bi bi-shield-check me-1 text-success"></i> Transactional Lock Protected</strong>
           </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label small fw-bold text-white d-flex align-items-center justify-content-between mb-2">
+          <span><i class="bi bi-tags-fill me-1.5 text-danger"></i> Select Ticket Tier</span>
+          <span class="badge bg-secondary-subtle text-secondary border small">Choose 1 Pass</span>
+        </label>
+        
+        <div class="row g-2 mb-2" id="tierOptionCards">
+          ${(() => {
+            const tierCaps = event.tier_capacities || null;
+            const tierAvail = event.tier_available || null;
+            const tiersConfig = [
+              { key: 'general', name: 'General', badgeClass: 'bg-secondary text-white', desc: 'Standard Pass' },
+              { key: 'vip', name: 'VIP', badgeClass: 'bg-warning text-dark', desc: 'Priority Access' },
+              { key: 'student', name: 'Student', badgeClass: 'bg-info-subtle text-info-emphasis border border-info-subtle', desc: 'Student Pass' },
+              { key: 'early_bird', name: 'Early Bird', badgeClass: 'bg-success-subtle text-success border border-success-subtle', desc: 'Early Access' },
+            ];
+
+            // Determine default selected tier
+            let defTier = 'general';
+            if (tierCaps) {
+              const genCap = tierCaps.general;
+              const genAv = tierAvail ? tierAvail.general : null;
+              const isGenDisabled = genCap !== null && genCap !== undefined && (genCap === 0 || (genAv !== null && genAv !== undefined && genAv <= 0));
+              if (isGenDisabled) {
+                const firstAvail = tiersConfig.find(tc => {
+                  const cap = tierCaps[tc.key];
+                  const av = tierAvail ? tierAvail[tc.key] : null;
+                  return cap === null || cap === undefined || (cap > 0 && (av === null || av === undefined || av > 0));
+                });
+                if (firstAvail) defTier = firstAvail.key;
+              }
+            }
+
+            return tiersConfig.map(tc => {
+              const cap = (tierCaps && tierCaps[tc.key] !== undefined) ? tierCaps[tc.key] : null;
+              const av = (tierAvail && tierAvail[tc.key] !== undefined) ? tierAvail[tc.key] : null;
+              const hasCustomQuota = cap !== null && cap !== undefined;
+              const isNotOffered = hasCustomQuota && cap === 0;
+              const isSoldOut = hasCustomQuota && cap > 0 && av !== null && av !== undefined && av <= 0;
+              const isDisabled = isNotOffered || isSoldOut;
+              const isSelected = tc.key === defTier && !isDisabled;
+
+              let subText = tc.desc;
+              let quotaBadge = '';
+              if (isNotOffered) {
+                subText = '<span class="text-secondary" style="font-size: 0.65rem;">Not Offered</span>';
+              } else if (isSoldOut) {
+                subText = '<span class="text-danger fw-bold" style="font-size: 0.65rem;">Sold Out</span>';
+              } else if (hasCustomQuota && av !== null && av !== undefined) {
+                subText = `<span class="text-success fw-bold" style="font-size: 0.65rem;">${av} left</span>`;
+                quotaBadge = `<span class="badge bg-dark border text-muted ms-1" style="font-size: 0.62rem;">${av}/${cap}</span>`;
+              }
+
+              const opacityStyle = isDisabled ? 'opacity: 0.45; cursor: not-allowed;' : '';
+              const activeClass = isSelected ? 'active' : '';
+
+              return `
+                <div class="col-6 col-sm-3">
+                  <div class="tier-card ${activeClass} border rounded-3 p-2.5 text-center" 
+                       style="${opacityStyle}" 
+                       onclick="${isDisabled ? '' : `selectTierOption('${tc.key}')`}" 
+                       data-tier="${tc.key}"
+                       data-disabled="${isDisabled ? 'true' : 'false'}">
+                    <span class="badge ${tc.badgeClass} px-2 py-0.5 d-inline-block mb-1.5 fw-bold">${tc.name}</span>
+                    <div class="tier-title">${tc.name} ${quotaBadge}</div>
+                    <div class="tier-sub">${subText}</div>
+                  </div>
+                </div>
+              `;
+            }).join('');
+          })()}
+        </div>
+
+        <select id="modalTicketTier" class="form-select form-select-sm d-none" aria-label="Select Ticket Tier">
+          <option value="general">General</option>
+          <option value="vip">VIP</option>
+          <option value="student">Student</option>
+          <option value="early_bird">Early Bird</option>
+        </select>
+        
+        <div class="form-text small text-muted">
+          Selected Tier: <strong id="selectedTierDisplay" class="text-danger">General</strong> • All tiers include complete session attendance.
         </div>
       </div>
 
@@ -610,6 +841,8 @@ async function confirmReservation(eventId) {
 
   const btn = document.getElementById('confirmReserveBtn');
   const alertBox = document.getElementById('modalEventAlert');
+  const tierSelect = document.getElementById('modalTicketTier');
+  const selectedTier = tierSelect ? tierSelect.value : 'general';
 
   if (btn) {
     btn.disabled = true;
@@ -623,7 +856,7 @@ async function confirmReservation(eventId) {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${authToken}`,
       },
-      body: JSON.stringify({ event_id: eventId }),
+      body: JSON.stringify({ event_id: eventId, ticket_tier: selectedTier }),
     });
 
     const data = await res.json();
@@ -640,10 +873,16 @@ async function confirmReservation(eventId) {
           <div class="card border-0 bg-light p-3 mb-3 text-center">
             <span class="text-muted small text-uppercase fw-semibold mb-1">Official Booking Pass</span>
             <h4 class="h5 fw-bold text-dark mb-1">${escapeHTML(data.registration.event_title)}</h4>
-            <div class="my-2">
+            <div class="my-2 d-flex justify-content-center align-items-center gap-2">
               <span class="badge bg-success-subtle text-success border border-success px-2.5 py-1">
                 <i class="bi bi-check-circle-fill me-1"></i> Confirmed • ${escapeHTML(data.registration.status)}
               </span>
+            </div>
+
+            <!-- Prominent Ticket Tier Row -->
+            <div class="bg-white border rounded-3 p-2.5 my-2.5 d-flex justify-content-between align-items-center px-3">
+              <span class="small fw-bold text-secondary text-uppercase" style="letter-spacing: 0.04em;">Ticket Tier:</span>
+              <span class="fs-6">${getTierBadge(data.registration.ticket_tier)}</span>
             </div>
             <div class="bg-white border rounded-3 p-3 my-2 text-center">
               <span class="text-muted small d-block mb-1">Your Unique Ticket Code</span>
@@ -776,32 +1015,10 @@ function updateAuthUI() {
 }
 
 /**
- * Populates demo credentials into the login form inputs.
+ * Demo credentials filler (disabled in production participant UI).
  */
-function fillDemoCredentials(role) {
-  const emailInput = document.getElementById('loginEmail');
-  const passInput = document.getElementById('loginPassword');
-  const alertEl = document.getElementById('authAlert');
-
-  // Activate Sign In tab
-  const loginTabBtn = document.getElementById('login-tab');
-  if (loginTabBtn && typeof bootstrap !== 'undefined') {
-    const tab = new bootstrap.Tab(loginTabBtn);
-    tab.show();
-  }
-
-  if (role === 'admin') {
-    if (emailInput) emailInput.value = 'admin@stratosevent.internal';
-    if (passInput) passInput.value = 'StratosDev@2026';
-  } else {
-    if (emailInput) emailInput.value = 'rohit.mehta@example.com';
-    if (passInput) passInput.value = 'StratosDev@2026';
-  }
-
-  if (alertEl) {
-    alertEl.className = 'alert alert-info py-2 px-3 small mb-3 border';
-    alertEl.innerHTML = `<i class="bi bi-info-circle me-1"></i> Demo credentials loaded for <strong>${role}</strong>. Click "Sign In" below!`;
-  }
+function fillDemoCredentials() {
+  // Demo shortcuts removed for clean production experience
 }
 
 /**
@@ -948,10 +1165,22 @@ function openAuthModal(role) {
   }
 
   const alertEl = document.getElementById('authAlert');
-  if (alertEl) alertEl.className = 'd-none';
+  if (alertEl) {
+    alertEl.className = 'd-none';
+    alertEl.innerHTML = '';
+  }
 
-  if (role) {
-    fillDemoCredentials(role);
+  // Clear previous input values so form is clean
+  const emailInput = document.getElementById('loginEmail');
+  const passInput = document.getElementById('loginPassword');
+  if (emailInput) emailInput.value = '';
+  if (passInput) passInput.value = '';
+
+  // Default to Sign In tab
+  const loginTabBtn = document.getElementById('login-tab');
+  if (loginTabBtn && typeof bootstrap !== 'undefined') {
+    const tab = new bootstrap.Tab(loginTabBtn);
+    tab.show();
   }
 
   if (authModalInstance) {
@@ -1011,6 +1240,7 @@ async function openMyBookingsModal() {
                 <th>Event</th>
                 <th>Schedule</th>
                 <th>Ticket Code</th>
+                <th class="text-center">Ticket Tier</th>
                 <th>Status</th>
                 <th>Action</th>
               </tr>
@@ -1024,6 +1254,7 @@ async function openMyBookingsModal() {
                   </td>
                   <td>${escapeHTML(formatEventDate(r.start_time, r.end_time))}</td>
                   <td><code class="fw-bold text-primary">${escapeHTML(r.ticket_code)}</code></td>
+                  <td class="text-center">${getTierBadge(r.ticket_tier)}</td>
                   <td>
                     <span class="badge ${r.status === 'approved' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-secondary-subtle text-secondary'} text-uppercase">
                       ${escapeHTML(r.status)}
@@ -1100,6 +1331,144 @@ function getBadgeMarkup(category) {
 }
 
 /**
+ * Returns styled HTML badge for ticket tier category.
+ */
+function getTierBadge(tier) {
+  const t = (tier || 'general').toLowerCase();
+  switch (t) {
+    case 'vip':
+      return '<span class="badge bg-warning text-dark border border-warning-subtle fw-bold px-2.5 py-1 text-uppercase" style="font-size: 0.8rem;"><i class="bi bi-star-fill me-1"></i>VIP</span>';
+    case 'student':
+      return '<span class="badge bg-info-subtle text-info-emphasis border border-info-subtle fw-bold px-2.5 py-1" style="font-size: 0.8rem;"><i class="bi bi-mortarboard-fill me-1"></i>Student</span>';
+    case 'early_bird':
+      return '<span class="badge bg-success-subtle text-success border border-success-subtle fw-bold px-2.5 py-1" style="font-size: 0.8rem;"><i class="bi bi-lightning-charge-fill me-1"></i>Early Bird</span>';
+    case 'general':
+    default:
+      return '<span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle fw-bold px-2.5 py-1" style="font-size: 0.8rem;"><i class="bi bi-ticket-perforated-fill me-1"></i>General</span>';
+  }
+}
+
+/**
+ * Returns user-facing label for a ticket tier.
+ */
+function getTierLabel(tier) {
+  const t = (tier || 'general').toLowerCase();
+  switch (t) {
+    case 'vip': return 'VIP';
+    case 'student': return 'Student';
+    case 'early_bird': return 'Early Bird';
+    case 'general': default: return 'General';
+  }
+}
+window.getTierLabel = getTierLabel;
+
+/**
+ * Handles interactive ticket tier card selection in event detail modal.
+ */
+function selectTierOption(tier) {
+  const card = document.querySelector(`#tierOptionCards .tier-card[data-tier="${tier}"]`);
+  if (card && card.getAttribute('data-disabled') === 'true') {
+    return;
+  }
+  const tierSelect = document.getElementById('modalTicketTier');
+  if (tierSelect) {
+    tierSelect.value = tier;
+  }
+  const cards = document.querySelectorAll('#tierOptionCards .tier-card');
+  cards.forEach((c) => {
+    if (c.getAttribute('data-tier') === tier) {
+      c.classList.add('active');
+    } else {
+      c.classList.remove('active');
+    }
+  });
+  const display = document.getElementById('selectedTierDisplay');
+  if (display) {
+    display.textContent = getTierLabel(tier);
+  }
+}
+window.selectTierOption = selectTierOption;
+
+/**
+ * Dynamically calculates tier allocation sum in the admin Create Event form.
+ */
+function updateTierAllocationSum() {
+  const capInput = document.getElementById('eventNewCapacity');
+  const targetCap = capInput ? parseInt(capInput.value, 10) || 0 : 0;
+
+  const genVal = document.getElementById('eventNewTierGeneral')?.value;
+  const vipVal = document.getElementById('eventNewTierVip')?.value;
+  const stuVal = document.getElementById('eventNewTierStudent')?.value;
+  const earlyVal = document.getElementById('eventNewTierEarlyBird')?.value;
+
+  const hasAnyInput = (genVal !== '' && genVal !== undefined) ||
+                      (vipVal !== '' && vipVal !== undefined) ||
+                      (stuVal !== '' && stuVal !== undefined) ||
+                      (earlyVal !== '' && earlyVal !== undefined);
+
+  const gen = parseInt(genVal, 10) || 0;
+  const vip = parseInt(vipVal, 10) || 0;
+  const stu = parseInt(stuVal, 10) || 0;
+  const early = parseInt(earlyVal, 10) || 0;
+
+  const total = gen + vip + stu + early;
+
+  const sumCountEl = document.getElementById('tierSumCount');
+  const capTargetEl = document.getElementById('tierCapTarget');
+  const badgeEl = document.getElementById('tierAllocatedBadge');
+
+  if (sumCountEl) sumCountEl.textContent = total;
+  if (capTargetEl) capTargetEl.textContent = targetCap;
+
+  if (badgeEl) {
+    if (!hasAnyInput) {
+      badgeEl.className = 'badge bg-secondary-subtle text-secondary border';
+      badgeEl.textContent = 'Shared Capacity';
+    } else if (total === targetCap && targetCap > 0) {
+      badgeEl.className = 'badge bg-success-subtle text-success border border-success-subtle';
+      badgeEl.textContent = 'Allocations Match Capacity ✓';
+    } else if (total < targetCap) {
+      badgeEl.className = 'badge bg-warning-subtle text-warning border border-warning-subtle';
+      badgeEl.textContent = `${targetCap - total} unallocated seats`;
+    } else {
+      badgeEl.className = 'badge bg-danger-subtle text-danger border border-danger-subtle';
+      badgeEl.textContent = `Over-allocated by ${total - targetCap} seats`;
+    }
+  }
+}
+window.updateTierAllocationSum = updateTierAllocationSum;
+
+/**
+ * Distributes total event capacity evenly/proportionately across tiers.
+ */
+function distributeTiersEvenly() {
+  const capInput = document.getElementById('eventNewCapacity');
+  const targetCap = capInput ? parseInt(capInput.value, 10) || 0 : 0;
+  if (targetCap <= 0) {
+    alert('Please enter a total Seat Capacity first.');
+    return;
+  }
+
+  const vip = Math.floor(targetCap * 0.15);
+  const student = Math.floor(targetCap * 0.25);
+  const early = Math.floor(targetCap * 0.20);
+  const general = targetCap - (vip + student + early);
+
+  const genInput = document.getElementById('eventNewTierGeneral');
+  const vipInput = document.getElementById('eventNewTierVip');
+  const stuInput = document.getElementById('eventNewTierStudent');
+  const earlyInput = document.getElementById('eventNewTierEarlyBird');
+
+  if (genInput) genInput.value = general;
+  if (vipInput) vipInput.value = vip;
+  if (stuInput) stuInput.value = student;
+  if (earlyInput) earlyInput.value = early;
+
+  updateTierAllocationSum();
+}
+window.distributeTiersEvenly = distributeTiersEvenly;
+
+/**
  * Escapes HTML characters to prevent XSS.
  */
 function escapeHTML(str) {
@@ -1170,7 +1539,11 @@ async function handleAdminEventChange() {
   `;
 
   try {
-    const res = await fetch(`${API_BASE_URL}/registrations?event_id=${eventId}`, {
+    const tierSelector = document.getElementById('adminTierFilter');
+    const tierFilter = tierSelector ? tierSelector.value : '';
+    const tierQuery = tierFilter ? `&ticket_tier=${encodeURIComponent(tierFilter)}` : '';
+
+    const res = await fetch(`${API_BASE_URL}/registrations?event_id=${eventId}${tierQuery}`, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
     const data = await res.json();
@@ -1181,7 +1554,7 @@ async function handleAdminEventChange() {
         container.innerHTML = `
           <div class="text-center py-4 text-muted small">
             <i class="bi bi-inbox display-6 d-block mb-2 text-secondary opacity-50"></i>
-            No registrations found for this event yet.
+            No registrations found for this event matching the selected criteria.
           </div>
         `;
         return;
@@ -1194,6 +1567,7 @@ async function handleAdminEventChange() {
               <tr>
                 <th>Attendee</th>
                 <th>Ticket Code</th>
+                <th class="text-center">Ticket Tier</th>
                 <th>Registered Date</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -1211,6 +1585,7 @@ async function handleAdminEventChange() {
                       <div class="text-muted small">${escapeHTML(r.participant_email || '')} ${r.phone_number ? '• ' + escapeHTML(r.phone_number) : ''}</div>
                     </td>
                     <td><code class="fw-bold text-primary">${escapeHTML(r.ticket_code)}</code></td>
+                    <td class="text-center">${getTierBadge(r.ticket_tier)}</td>
                     <td>${new Date(r.registration_date).toLocaleDateString()}</td>
                     <td><span class="badge ${statusBadge} text-uppercase">${escapeHTML(r.status)}</span></td>
                     <td>
@@ -1311,6 +1686,7 @@ async function handleAdminVerifyTicket(e) {
           <div class="card p-3 border-0 bg-white shadow-sm mb-3">
             <div class="small"><span class="text-muted">Attendee:</span> <strong>${escapeHTML(t.participant_name)}</strong></div>
             <div class="small"><span class="text-muted">Email:</span> ${escapeHTML(t.participant_email)}</div>
+            <div class="small"><span class="text-muted">Ticket Tier:</span> ${getTierBadge(t.ticket_tier)}</div>
             <div class="small"><span class="text-muted">Registration Status:</span> <span class="badge bg-success-subtle text-success text-uppercase">${escapeHTML(t.registration_status)}</span></div>
           </div>
 
@@ -1402,8 +1778,51 @@ async function handleCreateEventSubmit(e) {
   const capacity = document.getElementById('eventNewCapacity')?.value;
   const description = document.getElementById('eventNewDesc')?.value.trim();
 
+  // Tier allocation inputs
+  const genVal = document.getElementById('eventNewTierGeneral')?.value;
+  const vipVal = document.getElementById('eventNewTierVip')?.value;
+  const stuVal = document.getElementById('eventNewTierStudent')?.value;
+  const earlyVal = document.getElementById('eventNewTierEarlyBird')?.value;
+
   if (!title || !event_type || !start_time || !end_time || !venue || !capacity) {
     return;
+  }
+
+  const payload = {
+    title,
+    event_type,
+    start_time,
+    end_time,
+    venue,
+    capacity: parseInt(capacity, 10),
+    description,
+    status: 'published',
+  };
+
+  const hasAnyTier = (genVal !== '' && genVal !== undefined) ||
+                     (vipVal !== '' && vipVal !== undefined) ||
+                     (stuVal !== '' && stuVal !== undefined) ||
+                     (earlyVal !== '' && earlyVal !== undefined);
+
+  if (hasAnyTier) {
+    const gen = parseInt(genVal, 10) || 0;
+    const vip = parseInt(vipVal, 10) || 0;
+    const stu = parseInt(stuVal, 10) || 0;
+    const early = parseInt(earlyVal, 10) || 0;
+    const sum = gen + vip + stu + early;
+
+    if (sum !== payload.capacity) {
+      if (alertEl) {
+        alertEl.className = 'alert alert-warning py-2 px-3 small mb-3 border';
+        alertEl.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-1"></i> Tier seat allocations (${sum}) must exactly equal the total Seat Capacity (${payload.capacity}).`;
+      }
+      return;
+    }
+
+    payload.capacity_general = gen;
+    payload.capacity_vip = vip;
+    payload.capacity_student = stu;
+    payload.capacity_early_bird = early;
   }
 
   if (btn) {
@@ -1418,16 +1837,7 @@ async function handleCreateEventSubmit(e) {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${authToken}`,
       },
-      body: JSON.stringify({
-        title,
-        event_type,
-        start_time,
-        end_time,
-        venue,
-        capacity: parseInt(capacity, 10),
-        description,
-        status: 'published',
-      }),
+      body: JSON.stringify(payload),
     });
 
     const data = await res.json();
@@ -1437,6 +1847,7 @@ async function handleCreateEventSubmit(e) {
         alertEl.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> Event <strong>${escapeHTML(data.event.title)}</strong> successfully published to catalog!`;
       }
       document.getElementById('adminCreateEventForm')?.reset();
+      updateTierAllocationSum();
       loadEvents();
     } else {
       if (alertEl) {

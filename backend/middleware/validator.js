@@ -8,6 +8,7 @@ const ALLOWED_EVENT_TYPES = ['workshop', 'webinar', 'conference', 'hackathon', '
 const ALLOWED_EVENT_STATUSES = ['draft', 'published', 'completed', 'cancelled'];
 const ALLOWED_REG_STATUSES = ['pending', 'approved', 'rejected', 'cancelled'];
 const ALLOWED_ATTENDANCE_STATUSES = ['checked_in', 'absent', 'late'];
+const ALLOWED_TICKET_TIERS = ['general', 'vip', 'student', 'early_bird'];
 
 /**
  * Validate user registration payload.
@@ -134,6 +135,40 @@ function validateEvent(isUpdate = false) {
       }
     }
 
+    // Optional per-tier capacity quotas validation
+    const tierFields = [
+      { key: 'capacity_general', label: 'General' },
+      { key: 'capacity_vip', label: 'VIP' },
+      { key: 'capacity_student', label: 'Student' },
+      { key: 'capacity_early_bird', label: 'Early Bird' },
+    ];
+
+    let hasAnyTierCapacity = false;
+    let tierSum = 0;
+
+    tierFields.forEach(({ key, label }) => {
+      const val = req.body[key];
+      if (val !== undefined && val !== null && val !== '') {
+        hasAnyTierCapacity = true;
+        const parsedVal = parseInt(val, 10);
+        if (isNaN(parsedVal) || parsedVal < 0) {
+          errors.push(`${label} tier capacity must be a non-negative integer (0 or greater).`);
+        } else {
+          tierSum += parsedVal;
+          req.body[key] = parsedVal;
+        }
+      } else {
+        req.body[key] = null;
+      }
+    });
+
+    if (hasAnyTierCapacity && !isUpdate) {
+      const parsedCapacity = parseInt(capacity, 10);
+      if (!isNaN(parsedCapacity) && tierSum !== parsedCapacity) {
+        errors.push(`The sum of tier capacities (${tierSum}) must equal the total event seat capacity (${parsedCapacity}).`);
+      }
+    }
+
     if (status !== undefined) {
       if (!ALLOWED_EVENT_STATUSES.includes(status)) {
         errors.push(`Status must be one of: [${ALLOWED_EVENT_STATUSES.join(', ')}].`);
@@ -155,13 +190,42 @@ function validateEvent(isUpdate = false) {
   };
 }
 
+/**
+ * Validate ticket tier for event registration.
+ * Default: 'general' when omitted.
+ * Returns 400 INVALID_TIER when an explicit invalid value (e.g. '', null, 'platinum', non-string) is provided.
+ */
+function validateTicketTier(req, res, next) {
+  const { ticket_tier } = req.body;
+
+  if (ticket_tier === undefined) {
+    req.body.ticket_tier = 'general';
+    return next();
+  }
+
+  if (typeof ticket_tier !== 'string' || !ALLOWED_TICKET_TIERS.includes(ticket_tier.trim())) {
+    return res.status(400).json({
+      success: false,
+      error: {
+        code: 'INVALID_TIER',
+        message: `ticket_tier must be one of: [${ALLOWED_TICKET_TIERS.join(', ')}].`,
+      },
+    });
+  }
+
+  req.body.ticket_tier = ticket_tier.trim();
+  next();
+}
+
 module.exports = {
   EMAIL_REGEX,
   ALLOWED_EVENT_TYPES,
   ALLOWED_EVENT_STATUSES,
   ALLOWED_REG_STATUSES,
   ALLOWED_ATTENDANCE_STATUSES,
+  ALLOWED_TICKET_TIERS,
   validateRegister,
   validateLogin,
   validateEvent,
+  validateTicketTier,
 };

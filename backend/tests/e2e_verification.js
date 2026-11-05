@@ -29,6 +29,17 @@ async function runVerification() {
   let testRegId = null;
 
   const results = [];
+    // Capture existing database counts before creating test data.
+  const baselineCounts = {};
+
+  for (const table of ['users', 'events', 'registrations', 'attendance']) {
+    const [rows] = await pool.query(
+      `SELECT COUNT(*) AS total FROM \`${table}\``
+    );
+    baselineCounts[table] = rows[0].total;
+  }
+
+  console.log('Baseline database counts:', baselineCounts);
 
   function record(feature, status, note = '') {
     results.push({ feature, status, note });
@@ -217,6 +228,7 @@ async function runVerification() {
     const book1Data = await resBook1.json();
     testTicketCode = book1Data.registration.ticket_code;
     testRegId = book1Data.registration.id;
+    assert.strictEqual(book1Data.registration.ticket_tier, 'general', 'Default ticket_tier must be general');
     assert(testTicketCode.startsWith(`SE-${testEventId}-`), 'Ticket code format valid');
     record('Event Seat Reservation (POST /api/registrations)', 'pass', `Issued ticket: ${testTicketCode}`);
 
@@ -289,6 +301,7 @@ async function runVerification() {
     assert.strictEqual(resVerifyTicket.status, 200);
     const verifyTicketData = await resVerifyTicket.json();
     assert.strictEqual(verifyTicketData.ticket.can_check_in, true);
+    assert.strictEqual(verifyTicketData.ticket.ticket_tier, 'general', 'Gate verify ticket must include ticket_tier');
     record('Gate Ticket Verification (GET /api/attendance/verify/:code)', 'pass', 'Ticket verified & eligible for check-in');
 
     // Gate check-in admission
@@ -340,47 +353,60 @@ async function runVerification() {
     });
     assert.strictEqual(resCsv.status, 200);
     const csvContent = await resCsv.text();
-    assert(csvContent.includes('Registration ID,Ticket Code'));
+    assert(csvContent.includes('Registration ID,Ticket Code,Ticket Tier'), 'CSV must include Ticket Tier column');
     record('Authorized CSV Roster Export (GET /api/analytics/export/csv)', 'pass', `Generated ${csvContent.length} bytes CSV file`);
 
   } catch (error) {
     console.error('❌ Verification Error:', error);
     record('E2E Verification Execution', 'fail', error.message);
+  
   } finally {
-    // -------------------------------------------------------------
-    // Teardown: Safe Cleanup of Test-Created Records (Req 9)
-    // -------------------------------------------------------------
-    console.log('\n--- 7. Safe Teardown & Database State Verification ---');
-    if (testEventId) {
-      await pool.query('DELETE FROM events WHERE id = ?', [testEventId]);
+    console.log('\n--- Safe Teardown & Database State Verification ---');
+
+    try {
+      // Delete only the event created by this test.
+      if (testEventId) {
+        await pool.query('DELETE FROM events WHERE id = ?', [testEventId]);
+      }
+
+      // Delete only the three uniquely named test accounts.
+      await pool.query('DELETE FROM users WHERE email IN (?, ?, ?)', [
+        testPartEmail,
+        testPart2Email,
+        testAdminEmail
+      ]);
+
+      const [u] = await pool.query('SELECT COUNT(*) AS c FROM users');
+      const [e] = await pool.query('SELECT COUNT(*) AS c FROM events');
+      const [r] = await pool.query('SELECT COUNT(*) AS c FROM registrations');
+      const [a] = await pool.query('SELECT COUNT(*) AS c FROM attendance');
+
+      console.log('Final Database Counts:', {
+        users: u[0].c,
+        events: e[0].c,
+        registrations: r[0].c,
+        attendance: a[0].c
+      });
+
+      assert.strictEqual(Number(u[0].c), Number(baselineCounts.users),
+        'User count must return to its starting value');
+      assert.strictEqual(Number(e[0].c), Number(baselineCounts.events),
+        'Event count must return to its starting value');
+      assert.strictEqual(Number(r[0].c), Number(baselineCounts.registrations),
+        'Registration count must return to its starting value');
+      assert.strictEqual(Number(a[0].c), Number(baselineCounts.attendance),
+        'Attendance count must return to its starting value');
+
+      record('Sample Data Preservation & Zero Leakage', 'pass',
+        'Database counts match the values recorded before testing');
+    } catch (cleanupError) {
+      console.error('Cleanup or database integrity verification failed:', cleanupError);
+      record('Cleanup & Database Integrity', 'fail', cleanupError.message);
+    } finally {
+      await pool.end();
     }
-    await pool.query('DELETE FROM users WHERE email IN (?, ?, ?)', [
-      testPartEmail,
-      testPart2Email,
-      testAdminEmail
-    ]);
-
-    const [u] = await pool.query('SELECT COUNT(*) AS c FROM users');
-    const [e] = await pool.query('SELECT COUNT(*) AS c FROM events');
-    const [r] = await pool.query('SELECT COUNT(*) AS c FROM registrations');
-    const [a] = await pool.query('SELECT COUNT(*) AS c FROM attendance');
-
-    console.log('Final Database Counts:', {
-      users: u[0].c,
-      events: e[0].c,
-      registrations: r[0].c,
-      attendance: a[0].c
-    });
-
-    assert.strictEqual(u[0].c, 7, 'Users count must be exactly 7 (original seed)');
-    assert.strictEqual(e[0].c, 5, 'Events count must be exactly 5 (original seed)');
-    assert.strictEqual(r[0].c, 7, 'Registrations count must be exactly 7 (original seed)');
-    assert.strictEqual(a[0].c, 3, 'Attendance count must be exactly 3 (original seed)');
-
-    record('Sample Data Preservation & Zero Leakage', 'pass', 'Original seed records intact (7 users, 5 events, 7 regs, 3 att)');
-
-    await pool.end();
   }
+
 
   console.log('\n============================================================');
   console.log(`✅ Verification Finished: ${results.filter(r => r.status === 'pass').length} Passed, ${results.filter(r => r.status === 'fail').length} Failed`);

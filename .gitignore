@@ -25,6 +25,7 @@ yarn-error.log*
 dist/
 build/
 coverage/
+database/backups/
 .vscode/*
 !.vscode/launch.json
 !.vscode/tasks.json

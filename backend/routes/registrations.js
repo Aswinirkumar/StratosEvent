@@ -13,7 +13,7 @@ const express = require('express');
 const crypto = require('crypto');
 const { pool } = require('../config/db');
 const { authenticateToken, requireRole } = require('../middleware/auth');
-const { ALLOWED_REG_STATUSES } = require('../middleware/validator');
+const { ALLOWED_REG_STATUSES, ALLOWED_TICKET_TIERS, validateTicketTier } = require('../middleware/validator');
 
 const router = express.Router();
 
@@ -31,7 +31,7 @@ function generateTicketCode(eventId, userId) {
  * POST /api/registrations
  * Register the authenticated user for an event with strict capacity protection & race-condition prevention.
  */
-router.post('/', authenticateToken, async (req, res, next) => {
+router.post('/', authenticateToken, validateTicketTier, async (req, res, next) => {
   const eventId = parseInt(req.body.event_id, 10);
   if (isNaN(eventId)) {
     return res.status(400).json({
@@ -41,15 +41,16 @@ router.post('/', authenticateToken, async (req, res, next) => {
   }
 
   const userId = req.user.id;
+  const ticketTier = req.body.ticket_tier;
   const conn = await pool.getConnection();
 
   try {
     // 1. Begin database transaction
     await conn.beginTransaction();
 
-    // 2. Lock event row to read capacity and status safely
+    // 2. Lock event row to read capacity, tier quotas, and status safely
     const [eventRows] = await conn.query(
-      `SELECT id, title, capacity, status, start_time, end_time 
+      `SELECT id, title, capacity, capacity_general, capacity_vip, capacity_student, capacity_early_bird, status, start_time, end_time 
        FROM events 
        WHERE id = ? 
        FOR UPDATE`,
@@ -103,7 +104,55 @@ router.post('/', authenticateToken, async (req, res, next) => {
       }
     }
 
-    // 5. Check remaining capacity (active registrations)
+    // 5. Check per-tier quota limit and availability if defined for this event
+    const tierColMap = {
+      general: 'capacity_general',
+      vip: 'capacity_vip',
+      student: 'capacity_student',
+      early_bird: 'capacity_early_bird',
+    };
+    const tierCol = tierColMap[ticketTier];
+    const tierQuota = (tierCol && event[tierCol] !== null && event[tierCol] !== undefined) ? parseInt(event[tierCol], 10) : null;
+
+    if (tierQuota !== null) {
+      const tierLabel = ticketTier === 'early_bird' ? 'Early Bird' : (ticketTier.toUpperCase() === 'VIP' ? 'VIP' : ticketTier.charAt(0).toUpperCase() + ticketTier.slice(1));
+
+      if (tierQuota <= 0) {
+        await conn.rollback();
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'TIER_NOT_AVAILABLE',
+            message: `This event does not offer ${tierLabel} passes.`,
+          },
+        });
+      }
+
+      const [tierCountRows] = await conn.query(
+        `SELECT COUNT(*) AS tier_count 
+         FROM registrations 
+         WHERE event_id = ? AND ticket_tier = ? AND status IN ('approved', 'pending') 
+         FOR UPDATE`,
+        [eventId, ticketTier]
+      );
+
+      const tierActiveCount = tierCountRows[0].tier_count;
+      if (tierActiveCount >= tierQuota) {
+        await conn.rollback();
+        return res.status(409).json({
+          success: false,
+          error: {
+            code: 'TIER_CAPACITY_REACHED',
+            message: `${tierLabel} passes are sold out for this event.`,
+            tier: ticketTier,
+            tier_capacity: tierQuota,
+            tier_registered: tierActiveCount,
+          },
+        });
+      }
+    }
+
+    // 6. Check remaining total capacity (active registrations)
     const [countRows] = await conn.query(
       `SELECT COUNT(*) AS active_count 
        FROM registrations 
@@ -126,25 +175,25 @@ router.post('/', authenticateToken, async (req, res, next) => {
       });
     }
 
-    // 6. Generate ticket code and register user
+    // 7. Generate ticket code and register user
     const ticketCode = generateTicketCode(eventId, userId);
     let registrationId;
 
     if (existingRegs.length > 0 && existingRegs[0].status === 'cancelled') {
-      // Re-activate previously cancelled registration
+      // Re-activate previously cancelled registration with the requested tier
       registrationId = existingRegs[0].id;
       await conn.query(
         `UPDATE registrations 
-         SET status = 'approved', ticket_code = ?, registration_date = CURRENT_TIMESTAMP 
+         SET status = 'approved', ticket_code = ?, ticket_tier = ?, registration_date = CURRENT_TIMESTAMP 
          WHERE id = ?`,
-        [ticketCode, registrationId]
+        [ticketCode, ticketTier, registrationId]
       );
     } else {
-      // Create fresh registration record
+      // Create fresh registration record with the requested tier
       const [insertResult] = await conn.query(
-        `INSERT INTO registrations (user_id, event_id, ticket_code, status) 
-         VALUES (?, ?, ?, 'approved')`,
-        [userId, eventId, ticketCode]
+        `INSERT INTO registrations (user_id, event_id, ticket_code, ticket_tier, status) 
+         VALUES (?, ?, ?, ?, 'approved')`,
+        [userId, eventId, ticketCode, ticketTier]
       );
       registrationId = insertResult.insertId;
     }
@@ -161,6 +210,7 @@ router.post('/', authenticateToken, async (req, res, next) => {
         event_id: eventId,
         event_title: event.title,
         ticket_code: ticketCode,
+        ticket_tier: ticketTier,
         status: 'approved',
         seat_number: activeCount + 1,
         capacity: event.capacity,
@@ -185,6 +235,7 @@ router.get('/my', authenticateToken, async (req, res, next) => {
         r.id,
         r.event_id,
         r.ticket_code,
+        r.ticket_tier,
         r.status,
         r.registration_date,
         e.title AS event_title,
@@ -281,7 +332,7 @@ router.patch('/:id/cancel', authenticateToken, async (req, res, next) => {
  */
 router.get('/', authenticateToken, requireRole('admin'), async (req, res, next) => {
   try {
-    const { event_id, status, search } = req.query;
+    const { event_id, status, search, ticket_tier } = req.query;
     const conditions = [];
     const params = [];
 
@@ -293,6 +344,11 @@ router.get('/', authenticateToken, requireRole('admin'), async (req, res, next) 
     if (status) {
       conditions.push('r.status = ?');
       params.push(status);
+    }
+
+    if (ticket_tier && ALLOWED_TICKET_TIERS.includes(ticket_tier)) {
+      conditions.push('r.ticket_tier = ?');
+      params.push(ticket_tier);
     }
 
     if (search) {
@@ -309,6 +365,7 @@ router.get('/', authenticateToken, requireRole('admin'), async (req, res, next) 
         r.user_id,
         r.event_id,
         r.ticket_code,
+        r.ticket_tier,
         r.status,
         r.registration_date,
         u.full_name AS participant_name,
@@ -369,7 +426,7 @@ router.patch('/:id/status', authenticateToken, requireRole('admin'), async (req,
     await conn.beginTransaction();
 
     const [regs] = await conn.query(
-      `SELECT r.id, r.event_id, r.status, e.capacity 
+      `SELECT r.id, r.event_id, r.status, r.ticket_tier, e.capacity, e.capacity_general, e.capacity_vip, e.capacity_student, e.capacity_early_bird 
        FROM registrations r
        INNER JOIN events e ON r.event_id = e.id
        WHERE r.id = ?
@@ -387,7 +444,7 @@ router.patch('/:id/status', authenticateToken, requireRole('admin'), async (req,
 
     const reg = regs[0];
 
-    // If changing to 'approved' from another state, verify capacity
+    // If changing to 'approved' from another state, verify total and tier capacities
     if (status === 'approved' && reg.status !== 'approved') {
       const [countRows] = await conn.query(
         `SELECT COUNT(*) AS active_count 
@@ -406,6 +463,38 @@ router.patch('/:id/status', authenticateToken, requireRole('admin'), async (req,
             message: `Cannot approve registration: Event has already reached maximum capacity (${reg.capacity}).`,
           },
         });
+      }
+
+      // Check tier-specific quota if defined
+      const tierColMap = {
+        general: 'capacity_general',
+        vip: 'capacity_vip',
+        student: 'capacity_student',
+        early_bird: 'capacity_early_bird',
+      };
+      const tierCol = tierColMap[reg.ticket_tier];
+      const tierQuota = (tierCol && reg[tierCol] !== null && reg[tierCol] !== undefined) ? parseInt(reg[tierCol], 10) : null;
+
+      if (tierQuota !== null) {
+        const [tierCountRows] = await conn.query(
+          `SELECT COUNT(*) AS tier_count 
+           FROM registrations 
+           WHERE event_id = ? AND ticket_tier = ? AND status = 'approved' AND id != ?
+           FOR UPDATE`,
+          [reg.event_id, reg.ticket_tier, regId]
+        );
+
+        if (tierCountRows[0].tier_count >= tierQuota) {
+          await conn.rollback();
+          const tierLabel = reg.ticket_tier === 'early_bird' ? 'Early Bird' : (reg.ticket_tier.toUpperCase() === 'VIP' ? 'VIP' : reg.ticket_tier.charAt(0).toUpperCase() + reg.ticket_tier.slice(1));
+          return res.status(409).json({
+            success: false,
+            error: {
+              code: 'TIER_CAPACITY_REACHED',
+              message: `Cannot approve registration: ${tierLabel} quota (${tierQuota}) is fully exhausted.`,
+            },
+          });
+        }
       }
     }
 
